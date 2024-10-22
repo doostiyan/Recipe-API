@@ -1,1 +1,1 @@
-from .test_user_api import PublicUserApiTests, PrivateUserApiTests
+from .test_user_api import PrivateUserApiTests, PublicUserApiTests
