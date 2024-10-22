@@ -3,6 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from tags import views
 
+app_name = "tags"
+
 router = DefaultRouter()
 router.register("tags", views.TagViewSet)
 

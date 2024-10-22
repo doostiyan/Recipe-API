@@ -1,1 +1,1 @@
-from .test_model import ModelTests
+from .test_model import test_create_ingredient

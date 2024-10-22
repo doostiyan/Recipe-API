@@ -1,29 +1,33 @@
+import os
 from decimal import Decimal
 from unittest.mock import patch
 
-from django.test import TestCase
-from users.models import User
+import pytest
 
 from recipes import models
 from recipes.models import Recipe
 
 
-class TestRecipe(TestCase):
-    def test_create_recipe(self):
-        user = User.objects.create_user(email="test@example.com", password="passwordtest", name="test name ")
+@pytest.mark.django_db
+class TestRecipe:
+    def test_create_recipe(self, create_user):
         recipe = Recipe.objects.create(
-            user=user,
+            user=create_user,
             title="test title",
             time_minutes=10,
             price=Decimal("5.5"),
             description="test description",
         )
-        self.assertEqual(str(recipe), recipe.title)
+        assert str(recipe) == recipe.title
 
-    @patch("recipes.models.uuid.uuid4")
-    def test_recipe_file_name_uuid(self, mock_uuid):
-        uuid = "test-uuid"
-        mock_uuid.return_value = uuid
-        file_path = models.recipe_image_file_path(None, "example.jpg")
 
-        self.assertEqual(file_path, f"uploads/recipe/{uuid}.jpg")
+@pytest.mark.django_db
+@patch("uuid.uuid4")
+def test_recipe_file_name_uuid(mock_uuid):
+    """Test generating image path."""
+    uuid = "test-uuid"
+    mock_uuid.return_value = uuid
+    file_path = models.recipe_image_file_path(None, "example.jpg")
+
+    expected_path = os.path.join("uploads", "recipe", f"{uuid}.jpg")
+    assert file_path == expected_path
