@@ -1,1 +1,2 @@
+from .test_ingredient import TestPrivateIngredientApi, TestPublicIngredientApi
 from .test_model import test_create_ingredient
