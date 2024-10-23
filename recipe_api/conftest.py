@@ -15,5 +15,20 @@ def client():
 
 @pytest.fixture
 def authenticated_client(client, create_user):
-    auth = client.force_authenticate(create_user)
-    return auth
+    client.force_authenticate(create_user)
+    return client
+
+
+@pytest.fixture
+def create_admin_user(client):
+    admin = User.objects.create_superuser(email="admin@example.com", password="passwordtest")
+    client.force_login(admin)
+    return admin
+
+
+@pytest.fixture
+def create_user_param():
+    def make_user(**params):
+        return User.objects.create_user(**params)
+
+    return make_user
