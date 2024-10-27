@@ -14,12 +14,9 @@ class TestPublicUserApi:
     def test_create_user_success(self, client, create_user_param):
         payload = {"email": "test@example.com", "password": "passwordtest", "name": "test name"}
         res = client.post(CREATE_USER_URL, payload)
-        print("Response data:", res.data)
+
         assert res.status_code == status.HTTP_201_CREATED
         user = User.objects.get(email=payload["email"])
-
-        print("User email:", user.email)
-        print("User password check:", user.check_password(payload["password"]))
 
         assert user.check_password(payload["password"])
 

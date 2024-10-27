@@ -19,7 +19,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def _get_or_create_tags(self, tags, recipe):
         auth_user = self.context["request"].user
         for tag in tags:
-            tag_obj, created = Tag.objects.get_or_create(
+            tag_obj, create = Tag.objects.get_or_create(
                 user=auth_user,
                 **tag,
             )
@@ -41,9 +41,15 @@ class RecipeSerializer(serializers.ModelSerializer):
         self._get_or_create_tags(tags, recipe)
         self._get_or_create_ingredients(ingredients, recipe)
 
+        return recipe
+
     def update(self, instance, validated_data):
+        if "user" in validated_data:
+            raise serializers.ValidationError("You cannot change the user of a recipe.")
+
         tags = validated_data.pop("tags", None)
         ingredients = validated_data.pop("ingredients", None)
+
         if tags is not None:
             instance.tags.clear()
             self._get_or_create_tags(tags, instance)
@@ -52,6 +58,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             instance.ingredients.clear()
             self._get_or_create_ingredients(ingredients, instance)
 
+        # Update other fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
@@ -59,14 +66,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class RecipeDetailSerializer(serializers.ModelSerializer):
-    # class Meta:
-    #     model = Recipe
-    #     fields = [
-    #         'id', 'title', 'time_minutes', 'price', 'link', 'description'
-    #     ]
+class RecipeDetailSerializer(RecipeSerializer):
     class Meta(RecipeSerializer.Meta):
-        fields = RecipeSerializer.Meta.fields + ["description"]
+        fields = RecipeSerializer.Meta.fields + ["description", "image"]
 
 
 class RecipeImageSerializer(serializers.ModelSerializer):
