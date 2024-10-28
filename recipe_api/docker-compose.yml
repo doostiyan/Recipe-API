@@ -1,38 +1,41 @@
-version: "3.9"
+name: recipe_api_local
 
 services:
-  app:
-    build:
-      context: .
-      args:
-        - DEV=true
-    ports:
-      - 8000:8000
-    volumes:
-      - ./app:/app
-      - dev-static-data:/vol/web
-    command:
-      - sh -c "python manage.py wait_for_db &&
-               python manage.py migrate &&
-               python manage.py runserver 0.0.0.0:8000"
-    environment:
-      - DB_HOST=db
-      - DB_NAME=devdb
-      - DB_USER=devuser
-      - DB_PASS=changeme
-      - DEBUG = 1
-    depends_on:
-      - db
 
-  db:
+  postgres:
+    container_name: recipe_api_local_postgres
     image: postgres:16-alpine
     volumes:
-      - dev-db-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - main
     environment:
-      - POSTGRES_DB=devdb
-      - POSTGRES_USER=devuser
-      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+
+  django:
+    container_name: recipe_api_local_django
+    build:
+      context: .
+      dockerfile: ./compose/Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    networks:
+      - main
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    restart: on-failure
+
+networks:
+  main:
 
 volumes:
-  dev-db-data:
-  dev-static-data:
+  postgres_data: {}
